@@ -1,5 +1,5 @@
 {
-    "palworldExePath": "~/.steam/steam/steamapps/common/PalServer/PalServer.sh",
+    "palworldExePath": "/home/mazic/.steam/steam/steamapps/common/PalServer/PalServer.sh",
     "palworldServerIP": "0.0.0.0",
     "palworldServerPort": 8211,
     "palworldRCONHost": "localhost",

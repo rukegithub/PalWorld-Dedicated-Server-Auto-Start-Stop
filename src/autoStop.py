@@ -11,78 +11,67 @@ stopServerVariables = {
     "isRunningStopwatchToStopServer": False,
     "leftTimeToStopServer": -1
 }
-
+stop_schedule = threading.Event()
 stopServerVariablesLock = threading.Lock()  # 동기화용 Lock
 
-# check server stop every minute if there is no players
 def checkEventStopServerCore():
     try:
         global stopServerVariables
 
-        #logging.info("Checking if the conditions for stop server are met")
+        with stopServerVariablesLock:
+            if not isPalWorldProcessRunning():
+                stopServerVariables["isRunningStopwatchToStopServer"] = False
+                return
 
-        # filter 1
-        if not isPalWorldProcessRunning():
-            #logging.info("The PalWorld server is not running, so the stop server event cannot be triggered.")
-            stopServerVariables["isRunningStopwatchToStopServer"] = False
-            return
+            if isStopEventRunning():
+                logging.info(f"Stop event is running. checkEventStopServerCore ignored")
+                return
 
-        # filter 2
-        if isStopEventRunning():
-            logging.info(f"Stop event is running. checkEventStopServerCore ignored")
-            return
+            currentServerInfo = updateCurrentServerInfo()
+            if currentServerInfo is None:
+                logging.warn("Failed to retrieve server info. Skipping stop event check this time.")
+                return
 
-        # filter 2: player count
-        currentServerInfo = updateCurrentServerInfo()
-        if currentServerInfo is None:
-            logging.error("An error occurred while updating the current server, and as a result, the stop server event cannot be triggered.")
-            stopServerVariables["isRunningStopwatchToStopServer"] = False
-            return
-        playerCount = currentServerInfo["playerCount"]
-        if playerCount > 0:
-            stopServerVariables["isRunningStopwatchToStopServer"] = False
-            return
+            if currentServerInfo["playerCount"] > 0:
+                stopServerVariables["isRunningStopwatchToStopServer"] = False
+                return
 
-        # check time
-        currentTime = time.time()
-        if not stopServerVariables["isRunningStopwatchToStopServer"]:
-            stopServerVariables["stopEventTriggeredTime"] = time.time()     # save triggered time
-            stopServerVariables["isRunningStopwatchToStopServer"] = True    # save flag
+            currentTime = time.time()
+            if not stopServerVariables["isRunningStopwatchToStopServer"]:
+                stopServerVariables["stopEventTriggeredTime"] = currentTime
+                stopServerVariables["isRunningStopwatchToStopServer"] = True
 
-        ServerAutoStopSeconds = Settings.ServerAutoStopSeconds
-        passedTime = currentTime - stopServerVariables["stopEventTriggeredTime"]
-        if passedTime >= ServerAutoStopSeconds:
-            logging.info("The server stop conditions are met, attempting to stop the server.")
-            logging.info(f"passedTime = {passedTime}")
-            stopServer(1)
-            stopServerVariables["stopEventTriggeredTime"] = time.time() # to prevent call stopServer multiple times
-            stopServerVariables["leftTimeToStopServer"] = 0.0
-        else:
-            stopServerVariables["leftTimeToStopServer"] = ServerAutoStopSeconds - passedTime
-            logging.info(f"The server will automatically stop after {stopServerVariables['leftTimeToStopServer']} seconds.")
+            passedTime = currentTime - stopServerVariables["stopEventTriggeredTime"]
+            if passedTime >= Settings.ServerAutoStopSeconds:
+                stopServer(1)
+                with stopServerVariablesLock:
+                    stopServerVariables["stopEventTriggeredTime"] = 1.0E+100  # 초기화
+                    stopServerVariables["isRunningStopwatchToStopServer"] = False  # 타이머 종료
+                    stopServerVariables["leftTimeToStopServer"] = -1  # 남은 시간 리셋
+            else:
+                stopServerVariables["leftTimeToStopServer"] = Settings.ServerAutoStopSeconds - passedTime
 
     except Exception as e:
         logging.error(f"Error from checkEventStopServerCore: {e}")
         logging.error(traceback.format_exc())
-        return None
 
 def runSchedule():
-    ServerAutoStopCheckInterval = Settings.ServerAutoStopCheckInterval
-    while True:
+    while not stop_schedule.is_set():
+        interval = Settings.ServerAutoStopCheckInterval
         schedule.run_pending()
-        time.sleep(ServerAutoStopCheckInterval)
+        time.sleep(min(interval, 1))
 
+def stop_scheduler():
+    stop_schedule.set()
 
 def checkEventStopServer():
     global stopServerVariables
 
     logging.info("Start checkEventStopServer")
 
-    # manually start once
-    checkEventStopServerCore(None)
+    checkEventStopServerCore()
 
-    ServerAutoStopCheckInterval = Settings.ServerAutoStopCheckInterval
-    schedule.every(ServerAutoStopCheckInterval).seconds.do(checkEventStopServerCore, callback=None)
+    schedule.every(Settings.ServerAutoStopCheckInterval).seconds.do(checkEventStopServerCore)
 
-    thread = threading.Thread(target=runSchedule)
+    thread = threading.Thread(target=runSchedule, daemon=True)
     thread.start()
