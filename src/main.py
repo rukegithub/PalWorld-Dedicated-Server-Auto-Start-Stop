@@ -5,6 +5,7 @@ from autoStop import checkEventStopServer
 from logging.handlers import TimedRotatingFileHandler
 import logging
 import traceback
+import os
 
 # logs 폴더가 없으면 생성
 if not os.path.exists('logs'):
