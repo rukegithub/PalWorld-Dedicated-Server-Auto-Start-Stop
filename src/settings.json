@@ -1,10 +1,10 @@
 {
-    "palworldExePath": "C:\\steamcmd\\steamapps\\common\\PalServer\\PalServer.exe",
+    "palworldExePath": "~/.steam/steam/steamapps/common/PalServer/PalServer.sh",
     "palworldServerIP": "0.0.0.0",
     "palworldServerPort": 8211,
     "palworldRCONHost": "localhost",
     "palworldRCONPort": 25575,
-    "palworldAdminPassword": "topSecretPassword",
+    "palworldAdminPassword": "9746",
     "useWebServer": true,
     "webServerHost": "localhost",
     "webServerPort": 8212,
@@ -15,7 +15,7 @@
     "showServerIPAddress": true,
     "useAutoStart": true,
     "useAutoStop": true,
-    "ServerAutoStopSeconds": 600.0,
-    "ServerAutoStopCheckInterval": 10.0,
-    "palworldMainProcessName": "PalServer-Win64-Shipping-Cmd.exe"
+    "ServerAutoStopSeconds": 180.0,
+    "ServerAutoStopCheckInterval": 5.0,
+    "palworldMainProcessName": "PalServer-Linux-Shipping"
 }

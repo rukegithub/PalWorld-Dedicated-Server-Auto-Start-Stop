@@ -12,11 +12,13 @@ stopServerVariables = {
     "leftTimeToStopServer": -1
 }
 
+stopServerVariablesLock = threading.Lock()  # 동기화용 Lock
+
 # check server stop every minute if there is no players
-def checkEventStopServerCore(callback):
+def checkEventStopServerCore():
     try:
         global stopServerVariables
-        
+
         #logging.info("Checking if the conditions for stop server are met")
 
         # filter 1
@@ -28,8 +30,8 @@ def checkEventStopServerCore(callback):
         # filter 2
         if isStopEventRunning():
             logging.info(f"Stop event is running. checkEventStopServerCore ignored")
-            return        
-        
+            return
+
         # filter 2: player count
         currentServerInfo = updateCurrentServerInfo()
         if currentServerInfo is None:
@@ -40,7 +42,7 @@ def checkEventStopServerCore(callback):
         if playerCount > 0:
             stopServerVariables["isRunningStopwatchToStopServer"] = False
             return
-        
+
         # check time
         currentTime = time.time()
         if not stopServerVariables["isRunningStopwatchToStopServer"]:
@@ -68,7 +70,7 @@ def runSchedule():
     ServerAutoStopCheckInterval = Settings.ServerAutoStopCheckInterval
     while True:
         schedule.run_pending()
-        time.sleep(ServerAutoStopCheckInterval * 0.1)
+        time.sleep(ServerAutoStopCheckInterval)
 
 
 def checkEventStopServer():

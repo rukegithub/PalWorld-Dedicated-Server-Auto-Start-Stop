@@ -5,12 +5,12 @@ import traceback
 class settings:
     def __init__(self):
         # PalWorld
-        self.palworldExePath = r"C:\steamcmd\steamapps\common\PalServer\PalServer.exe"
+        self.palworldExePath = r"~/.steam/steam/steamapps/common/PalServer/PalServer.sh"
         self.palworldServerIP = "0.0.0.0"
         self.palworldServerPort = 8211
         self.palworldRCONHost = "localhost"
         self.palworldRCONPort = 25575
-        self.palworldAdminPassword = "topSecretPassword"
+        self.palworldAdminPassword = "9746"
 
         # Web Server
         self.useWebServer = True
@@ -27,11 +27,11 @@ class settings:
 
         # Auto Stop
         self.useAutoStop = True
-        self.ServerAutoStopSeconds = 600.0
-        self.ServerAutoStopCheckInterval = 10.0
+        self.ServerAutoStopSeconds = 180.0
+        self.ServerAutoStopCheckInterval = 5.0
 
         # Advanced
-        self.palworldMainProcessName = "PalServer-Win64-Test-Cmd.exe"
+        self.palworldMainProcessName = "PalServer-Linux-Shipping"
         self.firstPacketPattern = b'\x09\x08\x00'   # 09 08 00 04 98 5D F6 7E
 
 Settings = settings();

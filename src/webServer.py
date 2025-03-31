@@ -17,7 +17,7 @@ def getServerIP():
         IP = IP + ":" + str(Settings.palworldServerPort)
     except Exception as e:
         logging.error(f"Error while getting server IP, {e}")
-        IP ="unknown"
+        IP ="Unknown"
     return IP
 
 
